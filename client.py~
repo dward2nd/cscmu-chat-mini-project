@@ -5,7 +5,6 @@
 from takumi_connection import Client
 from takumi_connection import Connection
 from threading import Thread
-#import curses
 import fcntl
 import os
 import platform
