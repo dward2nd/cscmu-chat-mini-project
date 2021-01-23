@@ -7,11 +7,18 @@ from takumi_connection import Connection
 from threading import Thread
 import curses
 import fcntl
+import os
+import platform
 import struct
 import sys
 import random
 import readline
 import termios
+
+# if the operating system is Windows, make it compatible with terminal color
+# display.
+if platform.system() == 'Windows':
+    os.system('color')
 
 def ansi_color(n,s):
 	code={"bold":1,"faint":2,"italic":3,"underline":4,"blink_slow":5,"blink_fast":6,"negative":7,"conceal":8,"strike_th":9,
