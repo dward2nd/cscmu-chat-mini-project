@@ -16,7 +16,7 @@ import random
 # display.
 if platform.system() == 'Windows':
     os.system('color')
-    print('WARNING: This program (client-side) might not work as expected on Windows.')
+    print('WARNING: This program (client-side) might not work as expected on Windows.\n')
 
 # if not, the operating system is most likely POSIX-based, so that it could
 # support the way of printing text on linux.
