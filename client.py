@@ -29,7 +29,7 @@ def ansi_color(n,s):
 	code = {
         # font style
         "bold": 1,
-        "faint": 2
+        "faint": 2,
         "italic": 3,
         "underline": 4,
         "blink_slow": 5,
@@ -87,6 +87,7 @@ class ChatClient:
     def __init__(self, host, port):
         self.client = Client(host, port)
         self.is_running = False
+        self.is_authenticated = False
         self.chat_input_worker = None
         self.user_color = dict()    # (username, color_str)
         self.user_datetime_color = dict()   # (username, color_str)
@@ -104,19 +105,30 @@ class ChatClient:
         if recv[0] == 'auth':
             # ask user the username and preferred room id.
             print()
-            user = input('Username\n ->  ')
-            roomid = input('Room ID (to create new, type "none", without quote)\n ->  ')
+            print(ansi_color("magenda", ansi_color("bold", 'Username')),
+                  ansi_color("magenda", ansi_color("italic", 'can consist of\n  - alphabets A-Z,\n  - digits 0-9\n  - underscores.\n  - must not start with a digit.')), sep='\n')
+
+            user = input(ansi_color('bold', ansi_color('magenda', '-> ')))
+
+            print()
+            print(ansi_color("cyan", ansi_color("bold", 'Room ID')),
+                  ansi_color("cyan", ansi_color("italic", 'is 4-digit code. To create new, type "none"')), sep='\n')
+
+            roomid = input(ansi_color("bold",
+                                     ansi_color("cyan",
+                                                '-> ')))
+
             print()
 
             conn.send_multiple(['auth_res', user, roomid])
 
         elif recv[0] == 'stat_update':
-            if self.is_running:
+            if self.is_authenticated:
                 blank_current_readline()
 
             print(ansi_color('red', f'From server [{recv[1]}]: {recv[2]}'))
 
-            if self.is_running and platform.system() != 'Windows':
+            if self.is_authenticated and platform.system() != 'Windows':
                 sys.stdout.write(ansi_color('red', '> ')+ readline.get_line_buffer())
                 sys.stdout.flush()
 
@@ -127,7 +139,10 @@ class ChatClient:
             self.user = recv[1]
             self.roomid = recv[2]
 
-            print(f'==================\nWelcome {recv[1]} to Takumi Messenger!')
+		    #value = "".join(["\033[", num, "m", s, "\033[0m"])
+            print('\033[1m', end='')    # start of the bold text
+            print(f'=============================================')
+            print(f'Welcome {recv[1]} to Takumi Messenger!')
             print('You are in Room ID', recv[2])
             print('Current active members:')
             if len(recv[3:]):
@@ -135,9 +150,17 @@ class ChatClient:
                     print('\t-', mem)
             else:
                 print('\t--- There\'s no member yet. ---')
-            print(f'==================\n')
+            print('\033[0m', end='')
 
-            self.is_running = True
+            print(ansi_color('red',
+                             ansi_color('bold',
+                                        '\nTo quit the chat, type "\\quit"')))
+
+            print('\033[1m', end='')
+            print(f'=============================================\n')
+            print('\033[0m', end='')
+
+            self.is_authenticated = True
             self.conn = conn
 
             # redirect to the chat management system.
@@ -159,9 +182,10 @@ class ChatClient:
                              ansi_color(self.user_color[recv[1]],
                                         f'  {recv[1]}  ')),
                   recv[2],
-                  f'\n{ansi_color("italic",
-                                  ansi_color(self.user_datetime_color[recv[1]],
-                                             f"  - {recv[3]}"))}')
+                  '\n',
+                  ansi_color("italic",
+                             ansi_color(self.user_datetime_color[recv[1]],
+                                        ''.join(["  - ", recv[3]]))))
             print()     # print a new line.
 
             if platform.system() != 'Windows':
@@ -172,6 +196,7 @@ class ChatClient:
 
         elif recv[0] == 'quit':
             self.is_running = False
+            self.is_authenticated = False
             self.client.stop()
 
     #def move_cursor(self, y, x):
@@ -181,7 +206,7 @@ class ChatClient:
         self.conn.send('empty_res')
         # The chat has to send the acknowledgement before starting a
         # conversation.
-        while self.is_running:
+        while self.is_authenticated:
             user_input = input(ansi_color("red", '> '))
 
             # clear the previous line of input
@@ -196,6 +221,7 @@ class ChatClient:
     def __del__(self):
         if self.is_running:
             self.is_running = False
+            self.is_authenticated = False
             self.client.stop()
 
 if __name__ == '__main__':
