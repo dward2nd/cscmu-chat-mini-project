@@ -14,11 +14,6 @@ import sys
 import time
 import traceback
 
-# if the operating system is Windows, make it compatible with terminal color
-# display.
-if platform.system() == 'Windows':
-    os.system('color')
-    #print('WARNING: This program (client-side) might not work as expected on Windows.')
 
 # make a class of the connection, for the easier management.
 class Server:
@@ -106,7 +101,15 @@ class Server:
 
     def wait_to_kill(self):
         if not self.is_terminal_getch_running:
+
+            # if the operating system is Windows,
+            # make it compatible with terminal color display.
+            if platform.system() == 'Windows':
+                os.system('color')
+
+            # Notify the terminal user about how to quit the session.
             print('\033[1m\033[31mTo stop this server session, type "qt" then press Enter.\033[0m\033[0m')
+
             self.is_terminal_getch_running = True
             terminal_getch = ''
             while terminal_getch != 'qt':
