@@ -236,7 +236,7 @@ class Connection(Thread):
             # without running the stop method.
             except Exception as e:
                 self.is_running = False
-                self.stop()
+                #self.stop()
                 if (self.event):
                     self.event.set()
                 if self.is_prompt:
@@ -250,7 +250,7 @@ class Connection(Thread):
             raise Exception('The current client connection has already stopped.')
 
         self.socket.send('200: Close the connection\r\n'.encode('utf-8'))
-        #self.socket.close()
+        self.socket.close()
         self.is_running = False
         if self.event:
             self.event.set()
