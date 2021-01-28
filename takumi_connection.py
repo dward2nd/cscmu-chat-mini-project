@@ -7,10 +7,18 @@
 from select import select
 from threading import Event
 from threading import Thread
+import os
+import platform
 import socket
 import sys
 import time
 import traceback
+
+# if the operating system is Windows, make it compatible with terminal color
+# display.
+if platform.system() == 'Windows':
+    os.system('color')
+    #print('WARNING: This program (client-side) might not work as expected on Windows.')
 
 # make a class of the connection, for the easier management.
 class Server:
@@ -98,6 +106,7 @@ class Server:
 
     def wait_to_kill(self):
         if not self.is_terminal_getch_running:
+            print('\033[1m\033[31mTo stop this server session, type "qt" then press Enter.\033[0m\033[0m')
             self.is_terminal_getch_running = True
             terminal_getch = ''
             while terminal_getch != 'qt':
@@ -227,6 +236,7 @@ class Connection(Thread):
             # without running the stop method.
             except Exception as e:
                 self.is_running = False
+                self.stop()
                 if (self.event):
                     self.event.set()
                 if self.is_prompt:
@@ -240,7 +250,7 @@ class Connection(Thread):
             raise Exception('The current client connection has already stopped.')
 
         self.socket.send('200: Close the connection\r\n'.encode('utf-8'))
-        self.socket.close()
+        #self.socket.close()
         self.is_running = False
         if self.event:
             self.event.set()
